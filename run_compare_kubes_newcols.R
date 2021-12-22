@@ -1,3 +1,5 @@
+## compareKUBES function
+
 # install pacman - a tool for easy installing and loading the other required packages
 if (!require("pacman")) install.packages("pacman")
 
