@@ -7,6 +7,8 @@ if (!require("pacman")) install.packages("pacman")
 pacman::p_load(dplyr, readr, tools, rlang)
 
 # input files, provided as full path and filename. OBS! / not \
+# file1 = new file
+# file2 = older file
 file1 <- "F:/Forskningsprosjekter/PDB 2455 - Helseprofiler og til_/PRODUKSJON/PRODUKTER/KUBER/KOMMUNEHELSA/DATERT/csv/LESEFERD_2021-12-17-10-02.csv"
 file2 <- "F:/Forskningsprosjekter/PDB 2455 - Helseprofiler og til_/PRODUKSJON/PRODUKTER/KUBER/KOMMUNEHELSA/DATERT/csv/LESEFERD_2020-12-04-14-36.csv"
 
