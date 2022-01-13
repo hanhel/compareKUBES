@@ -96,15 +96,14 @@ compare_join_NAs <- function(exclude_year, kube1, kube2) {
       mutate(TELLER_diff = round(TELLER.x - TELLER.y, 2),
              RATE_diff = round(RATE.x - RATE.y, 2),
              SPVFLAGG_diff = SPVFLAGG.x - SPVFLAGG.y,
-			 SMR_diff = SMR.x - SMR.y,
+			       SMR_diff = SMR.x - SMR.y,
              TELLER_FLAG = compareNA_unequal_strict(TELLER.x, TELLER.y),
              RATE_FLAG = compareNA_unequal(RATE.x, RATE.y),
              SPVFLAGG_FLAG = compareNA_unequal(SPVFLAGG.x, SPVFLAGG.y),
-			 SMR_FLAG = compareNA_unequal_strict(SMR.x, SMR.y),
+			       SMR_FLAG = compareNA_unequal_strict(SMR.x, SMR.y),
       ) %>% 
-      select(merge_by_cols, starts_with(mutate_cols), starts_with(rest_cols)) %>%
-	  filter(SMR_FLAG == 1)				# OBS! Applying strict filtering!
-    return(compare)
+      select(merge_by_cols, starts_with(mutate_cols), starts_with(rest_cols)) #%>%
+	  return(compare)
   }
   
   # If KUBE contains antall column, do
@@ -157,6 +156,29 @@ sumdiff <- function(compare) {
   
 }
 
+sumdiff_aar <- function(compare) {
+  
+  if (any(colnames(kube1) == "TELLER")) {
+    
+    res <- compare %>% 
+      group_by(AAR) %>% 
+      summarise_at(vars(TELLER_diff, RATE_diff, SMR_diff, SPVFLAGG_diff,
+                        TELLER_FLAG, RATE_FLAG, SMR_FLAG, SPVFLAGG_FLAG),  sum, na.rm = TRUE)
+    
+    return(res)
+  }
+  
+  if (any(colnames(kube1) == "antall")) {
+    
+    res <- compare %>% 
+      group_by(AAR) %>% 
+      summarise(vars(antall_diff, Crude_diff, SPVFLAGG_diff, 
+                     antall_FLAG, Crude_FLAG, SPVFLAGG_FLAG), sum, na.rm = TRUE)
+    return(res)
+  }
+  
+}
+
 
 compare_kube <- function(file1, file2) {
   
@@ -180,7 +202,8 @@ view_write_compare <- function(compare) {
   if (any(colnames(kube1) == "TELLER")) {
     
     write <- compare %>% 
-      filter(SPVFLAGG_FLAG == 1 | TELLER_FLAG == 1 | RATE_FLAG == 1 | SMR_FLAG) %>% 
+      filter(SPVFLAGG_FLAG == 1 | TELLER_FLAG == 1 | RATE_FLAG == 1 | SMR_FLAG == 1) %>% 
+      filter(TELLER_FLAG == 1 | SPVFLAGG_FLAG == 1) %>%   # extra filtering step, ensuring either TELLER- or SPVFLAG FLAG
       write_delim(res_name, delim = ";")
   }
   
@@ -193,8 +216,11 @@ view_write_compare <- function(compare) {
   
   
   view <- sumdiff(compare)
+  view_aar <- sumdiff_aar(compare)
   
-  return(list(write, view))
+  return(list(write, view, view_aar))
   
 }
 
+# write compare (whole file) for debugging purposes
+write_delim(compare, "compare_kube_res/compare_barnevern.csv", delim = ";")

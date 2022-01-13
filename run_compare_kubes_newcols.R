@@ -9,8 +9,8 @@ pacman::p_load(dplyr, readr, tools, rlang)
 # input files, provided as full path and filename. OBS! / not \
 # file1 = new file
 # file2 = older file
-file1 <- "F:/Forskningsprosjekter/PDB 2455 - Helseprofiler og til_/PRODUKSJON/PRODUKTER/KUBER/KOMMUNEHELSA/DATERT/csv/LESEFERD_2021-12-17-10-02.csv"
-file2 <- "F:/Forskningsprosjekter/PDB 2455 - Helseprofiler og til_/PRODUKSJON/PRODUKTER/KUBER/KOMMUNEHELSA/DATERT/csv/LESEFERD_2020-12-04-14-36.csv"
+file1 <- "F:/Forskningsprosjekter/PDB 2455 - Helseprofiler og til_/PRODUKSJON/PRODUKTER/KUBER/KOMMUNEHELSA/KH2022NESSTAR/BARNEVERN_TILTAK_2022-01-12-12-27.csv"
+file2 <- "F:/Forskningsprosjekter/PDB 2455 - Helseprofiler og til_/PRODUKSJON/PRODUKTER/KUBER/KOMMUNEHELSA/KH2021NESSTAR/BARNEVERN_TILTAK_2021-05-31-11-52.csv"
 
 
 # read files
@@ -27,6 +27,6 @@ source("compare_kubes_newcols.R")
 # run merge and compare
 compare <- compare_kube()
 
-# write results table and provide summary
+# write results table and provide summary, total and by year
 view_write_compare(compare)
 
