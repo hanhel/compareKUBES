@@ -8,6 +8,6 @@ file2 <- "path/to/older/kube/for/comparing.csv"
 Run all lines in   
 run_compare_kubes_newcols.R
 
-Output: 
+Output:   
 Inline summery of rows differing between the kubes,  
 in total and for each year. 
