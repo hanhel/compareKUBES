@@ -55,6 +55,7 @@ find_excludeyear <- function() {
 }
 
 exclude_year <- find_excludeyear()
+print(paste0("New year:", exclude_year))
 
 # Print newcols - columns in kube1 (new) that are not found in kube2 (old)
 find_newcols <- function(kube1, kube2) {
@@ -103,7 +104,7 @@ compare_join_NAs <- function(exclude_year, kube1, kube2) {
   rest_cols <- compare_cols[!compare_cols %in% mutate_cols]
   
   join <- left_join(kube1 %>% 
-                      filter(!AAR == exclude_year) %>%
+                      filter(!AAR %in% c(exclude_year)) %>%
                       {if(length(newcols) > 0) filter_at(., vars(newcols), any_vars(. == 0)) else .}, 
                     kube2, 
                     by = names(kube1 %>% 
