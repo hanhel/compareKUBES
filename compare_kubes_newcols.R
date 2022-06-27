@@ -96,11 +96,17 @@ compare_join_NAs <- function(exclude_year, kube1, kube2) {
                             select(antall:last_col()))
   }
   
+  # HACK for DODE
+  if (rev(names(kube1))[1] == "ANTALL") {
+    compare_cols <- names(kube1 %>% 
+                            select(ANTALL))
+  }
+  
   newcols <- names(kube1 %>% 
                      select(!one_of(as.character(names(kube2)))))
   merge_by_cols <- names(kube1 %>% 
                            select(-all_of(compare_cols), -all_of(newcols)))
-  mutate_cols <- c("TELLER", "MEIS", "RATE", "SMR", "antall", "Adjusted", "Crude", "SPVFLAGG")
+  mutate_cols <- c("TELLER", "MEIS", "RATE", "SMR", "antall", "Adjusted", "Crude", "SPVFLAGG", "ANTALL")
   rest_cols <- compare_cols[!compare_cols %in% mutate_cols]
   
   join <- left_join(kube1 %>% 
@@ -141,8 +147,12 @@ compare_join_NAs <- function(exclude_year, kube1, kube2) {
     join <- join %>% 
       mutate(antall_diff = antall.x - antall.y,
              antall_FLAG = compareNA_unequal_strict(antall.x, antall.y))
+  }	else if(any(grepl("ANTALL", colnames(join)))){
+    join <- join %>% 
+      mutate(antall_diff = ANTALL.x - ANTALL.y,
+             antall_FLAG = compareNA_unequal_strict(ANTALL.x, ANTALL.y))
   } else
-    print("No TELLER or antall cols found")
+    print("No TELLER, antall or ANTALL cols found")
   
   # detect and mutate SMR col, if present	
   if(any(grepl("SMR", colnames(join)))){
