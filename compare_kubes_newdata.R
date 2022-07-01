@@ -22,12 +22,13 @@ compareNA_unequal <- function(v1,v2) {
   return(notsame)
 }
 
-# compareNA_unequal_strict returns 0 wherever: 
+# compareNA_unequal_lesstrict returns 0 wherever: 
+# less strict than compareNA_unequal
 # have less difference than 1
 # (the difference makes up less than 5% of v1 - NOT IN USE)
 # are both missing,
 # OR returns 1 whenever else.
-compareNA_unequal_strict <- function(v1,v2) {
+compareNA_unequal_lesstrict <- function(v1,v2) {
   notsame <- case_when((abs(v1-v2) < 1) ~ 0,
                        is.na(v1) & is.na(v2) ~ 0,
                        #abs(v1-v2) / v1 < 0.05 ~ 0,
@@ -63,15 +64,31 @@ find_newcols <- function(kube1, kube2) {
                      select(!one_of(as.character(names(kube2)))))
   
   print_newcols <- ifelse(length(newcols) == 0,
-                          print("no columns in kube1, not found in kube2"),
+                          print("No new columns in kube1, not found in kube2"),
                           print(paste0("Newcol detected: ", newcols)))
   #print(newcols)
   #print(print_newcols)
   return(print_newcols)
 }
 
-print_newcols <- find_newcols(kube1 = kube1, kube2 = kube2)
+print_cols <- find_newcols(kube1 = kube1, kube2 = kube2)
 
+# find and print expired columns
+# that are found in kube2, and not in kube1
+find_expcols <- function(kube1, kube2) {
+  
+  expcols <- names(kube2 %>% 
+                     select(!one_of(as.character(names(kube1)))))
+  
+  print_expcols <- ifelse(length(expcols) == 0,
+                          print("No expired columns in kube2, not found in kube1"),
+                          print(paste0("Expired cols detected: ", expcols)))
+  #print(expcols)
+  #print(print_expcols)
+  return(print_expcols)
+}
+
+print_expcols <- find_expcols(kube1 = kube1, kube2 = kube2)
 
 ### NEW DATA
 # compare file1 (new file) with file2 (old file)
@@ -207,6 +224,8 @@ compare_join_NAs <- function(exclude_year, kube1, kube2) {
   
   newcols <- names(kube1 %>% 
                      select(!one_of(as.character(names(kube2)))))
+  expcols <- names(kube2 %>% 
+                     select(!one_of(as.character(names(kube1)))))
   merge_by_cols <- names(kube1 %>% 
                            select(-all_of(compare_cols), -all_of(newcols)))
   mutate_cols <- c("TELLER", "MEIS", "RATE", "SMR", "antall", "Adjusted", "Crude", "SPVFLAGG", "ANTALL")
@@ -215,7 +234,8 @@ compare_join_NAs <- function(exclude_year, kube1, kube2) {
   join <- left_join(kube1 %>% 
                       filter(!AAR %in% c(exclude_year)) %>%
                       {if(length(newcols) > 0) filter_at(., vars(newcols), any_vars(. == 0)) else .}, 
-                    kube2, 
+                    kube2 %>% 
+                      {if(length(expcols) > 0) filter_at(., vars(expcols), any_vars(. == 0)) else .}, 
                     by = names(kube1 %>% 
                                  select(all_of(merge_by_cols)))) 
   
@@ -245,15 +265,15 @@ compare_join_NAs <- function(exclude_year, kube1, kube2) {
   if(any(grepl("TELLER", colnames(join)))){
     join <- join %>% 
       mutate(TELLER_diff = round(TELLER.x - TELLER.y, 2),
-             TELLER_FLAG = compareNA_unequal_strict(TELLER.x, TELLER.y))
+             TELLER_FLAG = compareNA_unequal_lesstrict(TELLER.x, TELLER.y))
   }	else if(any(grepl("antall", colnames(join)))){
     join <- join %>% 
       mutate(antall_diff = antall.x - antall.y,
-             antall_FLAG = compareNA_unequal_strict(antall.x, antall.y))
+             antall_FLAG = compareNA_unequal_lesstrict(antall.x, antall.y))
   }	else if(any(grepl("ANTALL", colnames(join)))){
     join <- join %>% 
       mutate(antall_diff = ANTALL.x - ANTALL.y,
-             antall_FLAG = compareNA_unequal_strict(ANTALL.x, ANTALL.y))
+             antall_FLAG = compareNA_unequal_lesstrict(ANTALL.x, ANTALL.y))
   } else
     print("No TELLER, antall or ANTALL cols found")
   
@@ -261,7 +281,7 @@ compare_join_NAs <- function(exclude_year, kube1, kube2) {
   if(any(grepl("SMR", colnames(join)))){
     join <- join %>% 
       mutate(SMR_diff = SMR.x - SMR.y,
-             SMR_FLAG = compareNA_unequal_strict(SMR.x, SMR.y))
+             SMR_FLAG = compareNA_unequal_lesstrict(SMR.x, SMR.y))
   }
   
   # detect and mutate SVPFLAG col
