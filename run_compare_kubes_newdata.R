@@ -22,8 +22,8 @@ pacman::p_load(dplyr, readr, tools, rlang)
 #file2 <- "F:/Forskningsprosjekter/PDB 2455 - Helseprofiler og til_/PRODUKSJON/PRODUKTER/KUBER/NORGESHELSA/NH2021NESSTAR/Totaldod_NH_LHF_2021-08-30-16-15.csv"
 
 # TEST
-file1 <- "testdata/TEST_KUBE1_GRUNNSKOLEPOENG_UTD_2022.csv"
-file2 <- "testdata/TEST_KUBE2_GRUNNSKOLEPOENG_UTD_2021.csv"
+file1 <- "testdata/TEST_KUBE1_GRUNNSKOLEPOENG_2022_newdata.csv"
+file2 <- "testdata/TEST_KUBE2_GRUNNSKOLEPOENG_2021_multinewcols.csv"
 
 # read files
 kube1 <- read_delim(file1, delim = ";")
