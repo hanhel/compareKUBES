@@ -66,8 +66,6 @@ find_newcols <- function(kube1, kube2) {
   print_newcols <- ifelse(length(newcols) == 0,
                           print("No new columns in kube1, not found in kube2"),
                           print(paste0("Newcol detected: ", newcols)))
-  #print(newcols)
-  #print(print_newcols)
   return(print_newcols)
 }
 
@@ -83,8 +81,6 @@ find_expcols <- function(kube1, kube2) {
   print_expcols <- ifelse(length(expcols) == 0,
                           print("No expired columns in kube2, not found in kube1"),
                           print(paste0("Expired cols detected: ", expcols)))
-  #print(expcols)
-  #print(print_expcols)
   return(print_expcols)
 }
 
@@ -136,7 +132,12 @@ find_newdata <- function(kube1, kube2) {
   
   # Add flag newcol
   kube1_newrows_newcols <- kube1_newrows %>% 
-    {if(length(newcols) == 1) mutate(., newcol = ifelse(!!as.name(newcols) > 0, 1, 0)) else .}
+    {if(length(newcols) == 1) mutate(., newcol = ifelse(!!as.name(newcols) > 0, 1, 0)) else .} %>% 
+    {if(length(newcols) == 2) mutate(., newcol = ifelse(!!as.name(newcols[1]) > 0 |
+                                                          !!as.name(newcols[2]) > 0, 1, 0)) else .} %>% 
+    {if(length(newcols) == 3) mutate(., newcol = ifelse(!!as.name(newcols[1]) > 0 |
+                                                          !!as.name(newcols[2]) > 0 |
+                                                          !!as.name(newcols[3]) > 0, 1, 0)) else .}
   
   return(kube1_newrows_newcols) 
 }
@@ -187,6 +188,8 @@ write_newdata <- function() {
   if (length(res) > 0) {
     diff_df <- rbind(data.frame(var = "newcol", diff = newcols),
                      diff_df)
+  } else if(length(newcols) > 0) {
+    diff_df <- data.frame(var = "newcol", diff = newcols)
   }
   
   res_name_diff <- paste0("compare_kube_res/", res_dir, "/", "Summary_", ID1, "vs", ID2, ".csv")
@@ -199,9 +202,8 @@ write_newdata <- function() {
 
 ## input
 # takes input:
-# exclude_year -> wich year is not found in the oldest file,
-# and cannot be compared, 
-# usually in the form of e.g. "2020_2020"
+# exclude_year = year not found in the oldest file, (detected automatically)
+# and cannot be compared, # usually in the form of e.g. "2020_2020"
 # kube1, tible containing file1 
 # kube2, tible containing file2. 
 # (file1/file2 -> character string containing path and filename of file1/2, defined in main script)
@@ -236,9 +238,9 @@ compare_join_NAs <- function(exclude_year, kube1, kube2) {
   
   join <- left_join(kube1 %>% 
                       filter(!AAR %in% c(exclude_year)) %>%
-                      {if(length(newcols) > 0) filter_at(., vars(newcols), any_vars(. == 0)) else .}, 
+                      {if(length(newcols) > 0) filter_at(., vars(newcols), all_vars(. == 0)) else .}, 
                     kube2 %>% 
-                      {if(length(expcols) > 0) filter_at(., vars(expcols), any_vars(. == 0)) else .}, 
+                      {if(length(expcols) > 0) filter_at(., vars(expcols), all_vars(. == 0)) else .}, 
                     by = names(kube1 %>% 
                                  select(all_of(merge_by_cols)))) 
   
