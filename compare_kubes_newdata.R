@@ -90,10 +90,13 @@ find_expcols <- function(kube1, kube2) {
 
 print_expcols <- find_expcols(kube1 = kube1, kube2 = kube2)
 
+
 ### NEW DATA
 # compare file1 (new file) with file2 (old file)
 # add column "newrow" with 1 == newrow, NA (missing) if not newrow
 # add column "newcol" if new column in file1, not present in file2 (OBS! maximum 1 newcol)
+# , with newcol == 1 if subgroup ">0" of new column, else newcol == 0 if total group "0" of new column
+# , hence assuming that the total group "0" is already present.
 # write file1, containing columns newrow and newcol (if present)
 # write summary file containing (only) new rows and columns
 
