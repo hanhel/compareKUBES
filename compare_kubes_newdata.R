@@ -186,14 +186,6 @@ write_newdata <- function() {
     }
   }
   
-  # Add new columns
-  # if (length(res) > 0) {
-  #   diff_df <- rbind(data.frame(var = "newcol", diff = newcols),
-  #                    diff_df)
-  # } else if(length(newcols) > 0) {
-  #   diff_df <- data.frame(var = "newcol", diff = newcols)
-  # }
-  
   res_name_diff <- paste0("compare_kube_res/", res_dir, "/", "Summary_", ID1, "vs", ID2, ".csv")
   write_delim(diff_df, res_name_diff, delim = ";")
   
