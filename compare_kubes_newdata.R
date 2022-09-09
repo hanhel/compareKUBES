@@ -172,7 +172,7 @@ write_newdata <- function() {
                        kube2 %>% 
                          select(all_of(same_cols)))
   
-  # new rows
+  # new rows and new cols
   diff_df <- data.frame()
   for (i in same_cols){
     colname <- i
