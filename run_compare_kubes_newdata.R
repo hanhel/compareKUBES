@@ -14,16 +14,16 @@ pacman::p_load(dplyr, readr, tools, rlang)
 # file2 = older file
 
 # KOMMUNEHELSA
-#file1 <- "F:/Forskningsprosjekter/PDB 2455 - Helseprofiler og til_/PRODUKSJON/PRODUKTER/KUBER/KOMMUNEHELSA/KH2022NESSTAR/FRITIDSORG_10aar_UNGDATA_2022-01-19-09-00.csv"
-#file2 <- "F:/Forskningsprosjekter/PDB 2455 - Helseprofiler og til_/PRODUKSJON/PRODUKTER/KUBER/KOMMUNEHELSA/KH2021NESSTAR/FRITIDSORG_10aar_UNGDATA_2021-01-25-13-24.csv"
+file1 <- "F:/Forskningsprosjekter/PDB 2455 - Helseprofiler og til_/PRODUKSJON/PRODUKTER/KUBER/KOMMUNEHELSA/KH2023NESSTAR/BEFOLK_GK_2022-09-08-13-35.csv"
+file2 <- "F:/Forskningsprosjekter/PDB 2455 - Helseprofiler og til_/PRODUKSJON/PRODUKTER/KUBER/KOMMUNEHELSA/KH2023NESSTAR/BEFOLK_GK_2022-04-21-10-14.csv"
 
 # NORGESHELSA
 #file1 <- "F:/Forskningsprosjekter/PDB 2455 - Helseprofiler og til_/PRODUKSJON/PRODUKTER/KUBER/NORGESHELSA/NH2022NESSTAR/Totaldod_NH_LHF_2022-03-29-16-24.csv"
 #file2 <- "F:/Forskningsprosjekter/PDB 2455 - Helseprofiler og til_/PRODUKSJON/PRODUKTER/KUBER/NORGESHELSA/NH2021NESSTAR/Totaldod_NH_LHF_2021-08-30-16-15.csv"
 
 # TEST
-file1 <- "testdata/TEST_KUBE1_GRUNNSKOLEPOENG_2022_newdata.csv"
-file2 <- "testdata/TEST_KUBE2_GRUNNSKOLEPOENG_2021_multinewcols.csv"
+#file1 <- "testdata/TEST_KUBE1_GRUNNSKOLEPOENG_2022_newdata.csv"
+#file2 <- "testdata/TEST_KUBE2_GRUNNSKOLEPOENG_2021_multinewcols.csv"
 
 # read files
 kube1 <- read_delim(file1, delim = ";")
@@ -40,6 +40,7 @@ kube2 <- read_delim(file2, delim = ";")
 # or specify path like this:
 # source("path/to/where/script/is/compare_kubes_newcols.R")
 source("compare_kubes_newdata.R")
+#source("compare_kubes_newcols.R")
 
 # run find and write newdata
 write_newdata()
