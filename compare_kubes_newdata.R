@@ -240,28 +240,33 @@ compare_join_NAs <- function(exclude_year, kube1, kube2) {
                     by = names(kube1 %>% 
                                  select(all_of(merge_by_cols)))) 
   
-  # detect and mutate RATE (and similar) cols
-  # in prioritized order MEIS > RATE > Adjusted > Crude
+  # detect and mutate MEIS (and similar) cols
+  # in prioritized order MEIS > Adjusted
   if(any(grepl("MEIS", colnames(join)))){
     join <- join %>% 
       mutate(MEIS_diff = round(MEIS.x - MEIS.y, 2),
              MEIS_FLAG = compareNA_unequal(MEIS.x, MEIS.y))
-  } else if(any(grepl("RATE", colnames(join)))){
-    join <- join %>% 
-      mutate(RATE_diff = round(RATE.x - RATE.y, 2),
-             RATE_FLAG = compareNA_unequal(RATE.x, RATE.y))
   } else if(any(grepl("Adjusted", colnames(join)))){
     join <- join %>% 
       mutate(Adjusted_diff = round(Adjusted.x - Adjusted.y, 2),
              Adjusted_FLAG = compareNA_unequal(Adjusted.x, Adjusted.y))
+  } else
+    print("No MEIS or Adjusted cols found")
+  
+  # detect and mutate RATE (and similar) cols
+  # in prioritized order MEIS > RATE > Adjusted > Crude
+  if(any(grepl("RATE", colnames(join)))){
+    join <- join %>% 
+      mutate(RATE_diff = round(RATE.x - RATE.y, 2),
+             RATE_FLAG = compareNA_unequal(RATE.x, RATE.y))
   } else if(any(grepl("Crude", colnames(join)))){
     join <- join %>% 
       mutate(Crude_diff = round(Crude.x - Crude.y, 2),
              Crude_FLAG = compareNA_unequal(Crude.x, Crude.y))
   } else
-    print("No MEIS, RATE, Adjusted or Crude cols found")
+    print("No RATE or Crude cols found")
   
-  # detect and mutate TELLER (and similar) ocls
+  # detect and mutate TELLER (and similar) cols
   # in prioritized order TELLER > antall
   if(any(grepl("TELLER", colnames(join)))){
     join <- join %>% 
