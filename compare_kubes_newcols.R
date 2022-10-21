@@ -104,6 +104,14 @@ compare_join_NAs <- function(exclude_year, kube1, kube2) {
   
   newcols <- names(kube1 %>% 
                      select(!one_of(as.character(names(kube2)))))
+  expcols <- names(kube2 %>% 
+                     select(!one_of(as.character(names(kube1)))))
+  
+  standdim <- c("KJONN", "UTDANN", "INNVKAT", "LANDB")
+  
+  newcols_standdim <- newcols[newcols %in% standdim]
+  expcols_standdim <- expcols[expcols %in% standdim]
+  
   merge_by_cols <- names(kube1 %>% 
                            select(-all_of(compare_cols), -all_of(newcols)))
   mutate_cols <- c("TELLER", "MEIS", "RATE", "SMR", "antall", "Adjusted", "Crude", "SPVFLAGG", "ANTALL")
@@ -111,10 +119,17 @@ compare_join_NAs <- function(exclude_year, kube1, kube2) {
   
   join <- left_join(kube1 %>% 
                       filter(!AAR %in% c(exclude_year)) %>%
-                      {if(length(newcols) > 0) filter_at(., vars(newcols), any_vars(. == 0)) else .}, 
-                    kube2, 
+                      {if(length(newcols) > 0) filter_at(., vars(newcols_standdim), all_vars(. == 0)) else .}, 
+                    kube2 %>% 
+                      {if(length(expcols) > 0) filter_at(., vars(expcols_standdim), all_vars(. == 0)) else .}, 
                     by = names(kube1 %>% 
-                                 select(all_of(merge_by_cols)))) 
+                                 select(all_of(merge_by_cols))))
+  
+  if(is.data.frame(join) && nrow(join)==0) {
+    print("JOINING KUBES HAS NOT WORKED PROPERLY")
+  } else {
+    print("Joining kubes completed")
+  }
   
   # detect and mutate RATE (and similar) cols
   # in prioritized order MEIS > RATE > Adjusted > Crude
@@ -209,14 +224,14 @@ compare_kube <- function() {
 # printing filtered output results from compare
 # writing filtered output results from compare to ..
 # "compare_kube_res/x_vs_y.csv"
-view_write_compare <- function(compare) {
+view_write_compare_flagged <- function(compare) {
   
   ID1 <- file_path_sans_ext(basename(file1))
   ID2 <- file_path_sans_ext(basename(file2))
   
   res_dir <- Sys.Date()
-  dir.create(paste0("compare_kube_res/", res_dir), recursive = TRUE)
-  res_name <- paste0("compare_kube_res/", res_dir, "/", ID1, "vs", ID2, ".csv")
+  dir.create(paste0("compare_kube_res/", res_dir), recursive = TRUE, showWarnings = FALSE)
+  res_name <- paste0("compare_kube_res/", res_dir, "/", ID1, "vs", ID2, "_flagged.csv")
   
   flag_cols <- names(compare %>% 
                        select(ends_with("_FLAG")))
@@ -232,7 +247,32 @@ view_write_compare <- function(compare) {
   view <- sumdiff(compare)
   view_aar <- sumdiff_aar(compare)
   
-  return(list(write, view, view_aar))
+  return(list(write, view, print(view_aar, n = Inf)))
+  
+}
+
+view_write_compare_all <- function(compare) {
+  
+  ID1 <- file_path_sans_ext(basename(file1))
+  ID2 <- file_path_sans_ext(basename(file2))
+  
+  res_dir <- Sys.Date()
+  dir.create(paste0("compare_kube_res/", res_dir), recursive = TRUE,  showWarnings = FALSE)
+  res_name <- paste0("compare_kube_res/", res_dir, "/", ID1, "vs", ID2, ".csv")
+  
+  flag_cols <- names(compare %>% 
+                       select(ends_with("_FLAG")))
+  
+  flag_cols_strict <- names(compare %>% 
+                              select(any_of(c("TELLER_FLAG", "antall_FLAG", "SPVFLAGG_FLAG"))))
+  
+  write <- compare %>% 
+    write_delim(res_name, delim = ";")
+  
+  view <- sumdiff(compare)
+  view_aar <- sumdiff_aar(compare)
+  
+  return(list(write, view, print(view_aar, n = Inf)))
   
 }
 

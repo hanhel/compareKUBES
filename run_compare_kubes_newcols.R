@@ -14,8 +14,11 @@ pacman::p_load(dplyr, readr, tools, rlang)
 # file2 = older file
 
 # KOMMUNEHELSA
-file1 <- "F:/Forskningsprosjekter/PDB 2455 - Helseprofiler og til_/PRODUKSJON/PRODUKTER/KUBER/KOMMUNEHELSA/KH2023NESSTAR/KMI_MFR_GK_2022-05-19-15-45.csv"
-file2 <- "F:/Forskningsprosjekter/PDB 2455 - Helseprofiler og til_/PRODUKSJON/PRODUKTER/KUBER/KOMMUNEHELSA/KH2022NESSTAR/KMI_MFR_GK_2022-01-26-16-37.csv"
+#file1 <- "F:/Forskningsprosjekter/PDB 2455 - Helseprofiler og til_/PRODUKSJON/PRODUKTER/KUBER/KOMMUNEHELSA/DATERT/csv/ENEFHIB_2022-10-20-12-45.csv"
+#file2 <- "F:/Forskningsprosjekter/PDB 2455 - Helseprofiler og til_/PRODUKSJON/PRODUKTER/KUBER/KOMMUNEHELSA/KH2022NESSTAR/ENEFHIB_2021-10-06-10-18.csv"
+
+file1 <- "F:/Forskningsprosjekter/PDB 2455 - Helseprofiler og til_/PRODUKSJON/PRODUKTER/KUBER/KOMMUNEHELSA/DATERT/csv/ALKOHOL_UNGD_2022-10-21-10-05.csv"
+file2 <- "F:/Forskningsprosjekter/PDB 2455 - Helseprofiler og til_/PRODUKSJON/PRODUKTER/KUBER/KOMMUNEHELSA/KH2022NESSTAR/ALKOHOL_UNGD_2022-01-20-08-31.csv"
 
 # NORGESHELSA
 #file1 <- "F:/Forskningsprosjekter/PDB 2455 - Helseprofiler og til_/PRODUKSJON/PRODUKTER/KUBER/NORGESHELSA/NH2022NESSTAR/Totaldod_NH_LHF_2022-03-29-16-24.csv"
@@ -34,9 +37,15 @@ kube2 <- read_delim(file2, delim = ";")
 # source("path/to/where/script/is/compare_kubes_newcols.R")
 source("compare_kubes_newcols.R")
 
+
 # run merge and compare
 compare <- compare_kube()
 
-# write results table and provide summary, total and by year
-view_write_compare(compare)
+
+# write results table with all rows and provide summary, total and by year
+view_write_compare_all(compare)
+
+# OR !!
+# write results table with flagged rows and provide summary, total and by year
+#view_write_compare_flagged(compare)
 
