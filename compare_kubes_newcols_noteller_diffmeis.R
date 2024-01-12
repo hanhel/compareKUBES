@@ -16,7 +16,7 @@ pacman::p_load(dplyr, tools, rlang)
 # are both missing,
 # OR returns 1 whenever else.
 compareNA_unequal <- function(v1,v2) {
-  notsame <- case_when(abs(v1-v2) < 0.05 ~ 0,
+  notsame <- case_when(abs(v1-v2) < 0.5 ~ 0,
                        is.na(v1) & is.na(v2) ~ 0,
                        TRUE ~ 1)
   return(notsame)
@@ -73,6 +73,13 @@ find_newcols <- function(kube1, kube2) {
 
 print_newcols <- find_newcols(kube1 = kube1, kube2 = kube2)
 
+# Rename new cols "_uprikk" by removing "_uprikk" to enable comparisons
+kube1 <- kube1 %>% 
+  rename_at(.vars = vars(ends_with("_uprikk")),
+            .funs = ~(sub("_uprikk$", "", .)))
+kube2 <- kube2 %>% 
+  rename_at(.vars = vars(ends_with("_uprikk")),
+            .funs = ~(sub("_uprikk$", "", .)))
 
 ## input
 # takes input:
@@ -84,23 +91,29 @@ print_newcols <- find_newcols(kube1 = kube1, kube2 = kube2)
 # (file1/file2 -> character string containing path and filename of file1/2, defined in main script)
 # Identify new cols in kube1, and filtering to include total group (0) only
 
+# "måltall" 
+check_cols <- c("TELLER", "NEVNER", "RATE", "SMR", "MEIS", "sumNEVNER", "sumTELLER","RATE.n", "MALTALL", "GINI", "DEKNINGSGRAD", "RATEN","antall", "Crude", "Adjusted", "nevner_aarlig", "teller", "nevner", "rate", "meis", "sumteller", "sumnevner", "crude","adjusted","smr", "SPVFLAGG")
+
 compare_join_NAs <- function(exclude_year, kube1, kube2) {
   
-  if (any(colnames(kube1) == "TELLER")) {
-    compare_cols <- names(kube1 %>% 
-                            select(TELLER:last_col()))
-  }
+  compare_cols <- intersect(check_cols, colnames(kube1))
+
   
-  if (any(colnames(kube1) == "antall")) {
-    compare_cols <- names(kube1 %>% 
-                            select(antall:last_col()))
-  }
-  
-  # HACK for DODE
-  if (rev(names(kube1))[1] == "ANTALL") {
-    compare_cols <- names(kube1 %>% 
-                            select(ANTALL))
-  }
+  # if (any(colnames(kube1) == "TELLER")) {
+  #   compare_cols <- names(kube1 %>% 
+  #                           select(TELLER:last_col()))
+  # }
+  # 
+  # if (any(colnames(kube1) == "antall")) {
+  #   compare_cols <- names(kube1 %>% 
+  #                           select(antall:last_col()))
+  # }
+  # 
+  # # HACK for DODE
+  # if (rev(names(kube1))[1] == "ANTALL") {
+  #   compare_cols <- names(kube1 %>% 
+  #                           select(ANTALL))
+  # }
   
   newcols <- names(kube1 %>% 
                      select(!one_of(as.character(names(kube2)))))
@@ -114,7 +127,7 @@ compare_join_NAs <- function(exclude_year, kube1, kube2) {
   
   merge_by_cols <- names(kube1 %>% 
                            select(-all_of(compare_cols), -all_of(newcols)))
-  mutate_cols <- c("TELLER", "MEIS", "RATE", "SMR", "antall", "Adjusted", "Crude", "SPVFLAGG", "ANTALL")
+  mutate_cols <- c("TELLER", "sumTELLER", "MEIS", "RATE", "SMR", "antall", "Adjusted", "Crude", "SPVFLAGG", "ANTALL")
   rest_cols <- compare_cols[!compare_cols %in% mutate_cols]
   
   join <- left_join(kube1 %>% 
@@ -136,7 +149,7 @@ compare_join_NAs <- function(exclude_year, kube1, kube2) {
   if(any(grepl("MEIS", colnames(join)))){
     join <- join %>% 
       mutate(MEIS_diff = round(MEIS.x - MEIS.y, 2),
-             MEIS_FLAG = compareNA_unequal(MEIS.x, MEIS.y))
+             MEIS_FLAG = compareNA_unequal_strict(MEIS.x, MEIS.y))    # OBS! cutoff increased to >= 1! 
   } else if(any(grepl("Adjusted", colnames(join)))){
     join <- join %>% 
       mutate(Adjusted_diff = round(Adjusted.x - Adjusted.y, 2),
@@ -157,12 +170,16 @@ compare_join_NAs <- function(exclude_year, kube1, kube2) {
   } else
     print("No RATE or Crude cols found")
   
-  # detect and mutate TELLER (and similar) ocls
+  # detect and mutate TELLER (and similar) cOls
   # in prioritized order TELLER > antall
   if(any(grepl("TELLER", colnames(join)))){
     join <- join %>% 
       mutate(TELLER_diff = round(TELLER.x - TELLER.y, 2),
              TELLER_FLAG = compareNA_unequal_strict(TELLER.x, TELLER.y))
+  }	else if(any(grepl("sumTELLER", colnames(join)))){
+    join <- join %>% 
+      mutate(sumTELLER_diff = sumTELLER.x - sumTELLER.y,
+             sumTELLER_FLAG = compareNA_unequal_strict(sumTELLER.x, sumTELLER.y))
   }	else if(any(grepl("antall", colnames(join)))){
     join <- join %>% 
       mutate(antall_diff = antall.x - antall.y,
@@ -173,6 +190,21 @@ compare_join_NAs <- function(exclude_year, kube1, kube2) {
              antall_FLAG = compareNA_unequal_strict(ANTALL.x, ANTALL.y))
   } else
     print("No TELLER, antall or ANTALL cols found")
+  
+  # detect and mutate NEVNER (and similar) cOls
+  # in prioritized order TELLER > antall
+  if(any(colnames(join) %in% c("NEVNER")) & any(colnames(kube1) %in% c("NEVNER")) & any(colnames(kube2) %in% c("NEVNER"))){
+#  if(any(colnames(join) %in% c("NEVNER"))){
+    join <- join %>% 
+      mutate(NEVNER_diff = round(NEVNER.x - NEVNER.y, 2),
+             NEVNER_FLAG = compareNA_unequal_strict(NEVNER.x, NEVNER.y))
+  }	else if(any(colnames(join) %in% c("sumNEVNER")) & any(colnames(kube1) %in% c("sumNEVNER")) & any(colnames(kube2) %in% c("sumNEVNER"))){
+    #else if(any(grepl("sumNEVNER", colnames(join)))){
+    join <- join %>% 
+      mutate(sumNEVNER_diff = sumNEVNER.x - sumNEVNER.y,
+             sumNEVNER_FLAG = compareNA_unequal_strict(sumNEVNER.x, sumNEVNER.y))
+  } else
+    print("NEVNER or sumNEVNER cols not found in both kubes")
   
   # detect and mutate SMR col, if present	
   if(any(grepl("SMR", colnames(join)))){
@@ -242,7 +274,7 @@ view_write_compare_flagged <- function(compare) {
                        select(ends_with("_FLAG")))
   
   flag_cols_strict <- names(compare %>% 
-                              select(any_of(c("TELLER_FLAG", "antall_FLAG", "SPVFLAGG_FLAG"))))
+                              select(any_of(c("TELLER_FLAG", "antall_FLAG", "SPVFLAGG_FLAG", "MEIS_FLAG"))))
   
   write <- compare %>% 
     filter_at(., .vars = flag_cols, any_vars(. == 1)) %>% 

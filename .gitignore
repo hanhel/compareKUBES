@@ -3,6 +3,9 @@
 .RData
 .Ruserdata
 compare_kube_res
+testdata
 folkemengde_ssb
 notes.R
 notes.Rmd
+plots
+testing.Rmd
